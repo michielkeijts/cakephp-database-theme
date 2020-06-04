@@ -1,0 +1,37 @@
+{
+	"name": "michielkeijts/cake-database-themes",
+	"type": "cakephp-plugin",
+	"description": "CakePHP plugin adding option for database (child) themes",
+	"keywords": ["cakephp","theme","template"],
+	"homepage": "http://github.com/michielkeijts/cake-database-themes",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Michiel Keijts",
+			"homepage": "http://www.michielkeijts.nl",
+			"role": "Contributor"
+		}
+	],
+	"require": {
+		"php": ">=7.2",
+		"cakephp/cakephp": ">=4.0",
+	},
+	"require-dev": {
+	},
+	"suggest": {
+	},
+	"support": {
+		"source": "https://github.com/michielkeijts/cake-database-themes"
+	},
+	"autoload": {
+		"psr-4": {
+			"CakeDatabaseTheme\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+		}
+	},
+	"scripts": {
+	}
+}
