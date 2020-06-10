@@ -33,7 +33,7 @@ use CakeDatabaseTheme\Model\Entity\Template;
  *
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
-class CakeDatabaseThemesTemplatesTable extends Table
+class TemplatesTable extends Table
 {
     /**
      * Initialize method
@@ -112,6 +112,19 @@ class CakeDatabaseThemesTemplatesTable extends Table
         $rules->add($rules->existsIn(['theme_id'], 'Themes'));
 
         return $rules;
+    }
+    
+    /**
+     * Prevent updating the name field as this changes the path
+     * @param EventInterface $event
+     * @param Template $template
+     */
+    public function beforeSave(EventInterface $event, Template $template) 
+    {
+        if ($template->isDirty('name') && !$template->isNew()) {
+            $template->set('name', $template->getOriginal('name'));
+            $template->setDirty('name', false);
+        }
     }
     
     /**

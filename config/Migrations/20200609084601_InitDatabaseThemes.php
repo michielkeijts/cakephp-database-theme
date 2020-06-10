@@ -79,11 +79,6 @@ class InitDatabaseThemes extends AbstractMigration
         $this->table('cake_database_themes_themes')
             ->addColumn('name', 'string', [
                 'default' => null,
-                'limit' => 45,
-                'null' => true,
-            ])
-             ->addColumn('path', 'string', [
-                'default' => null,
                 'limit' => 150,
                 'null' => true,
             ])

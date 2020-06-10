@@ -6,6 +6,7 @@ namespace CakeDatabaseTheme\Model\Entity;
 use Cake\ORM\Entity;
 use Tools\Utility\Text;
 use Cake\ORM\TableRegistry;
+use CakeDatabaseThemes\Helper\DatabaseThemeHelper;
 
 /**
  * CakeDatabaseThemesTheme Entity
@@ -23,8 +24,9 @@ use Cake\ORM\TableRegistry;
  * @property \Cake\I18n\FrozenTime|null $deleted
  * @property int|null $deleted_by
  *
- * @property \CakeDatabaseTheme\Model\Entity\ParentCakeDatabaseThemesTheme $parent_theme
- * @property \CakeDatabaseTheme\Model\Entity\ChildCakeDatabaseThemesTheme[] $child_themes
+ * @property Theme $parent_theme
+ * @property Theme[] $child_themes
+ * @property Template[] $templates
  */
 class Theme extends Entity
 {
@@ -49,6 +51,7 @@ class Theme extends Entity
         'modified_by' => true,
         'deleted' => true,
         'deleted_by' => true,
+        'templates' => true,
         'parent_theme' => true,
         'child_themes' => true,
     ];
@@ -90,5 +93,40 @@ class Theme extends Entity
         }
         
         return $head;
+    }
+    
+    /**
+     * Get list of templates, default use the template directory
+     * @return array
+     */
+    protected function _getTemplates(): array
+    {
+        if ($this->name !== 'Default') {
+            return $this->templates;
+        }
+        
+        return DatabaseThemeHelper::getTemplatesByDirectory();
+    }
+    
+    /**
+     * Get list of templates coalesced for this Theme.
+     * So templates from a child theme override the parent theme
+     * @return Template[]
+     */
+    public function getTemplatesCoalesced(): array
+    {
+        $ancestors = TableRegistry::getTableLocator()->get($this->getSource())
+                ->find('path', ['for' => $this->id])
+                ->contain(['Templates']);
+        
+        $templates_coalesced = [];        
+        foreach ($ancestors as $ancestors) {
+            foreach ($ancestor->template as $template) {
+                $template->theme = $ancestor;
+                $templates_coalesced[$template->name] = $template;
+            }
+        }
+        
+        return $templates_coalesced;
     }
 }

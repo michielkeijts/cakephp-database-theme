@@ -36,7 +36,7 @@ use Cake\Filesystem\Folder;
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  * @mixin \Cake\ORM\Behavior\TreeBehavior
  */
-class CakeDatabaseThemesThemesTable extends Table
+class ThemesTable extends Table
 {
     /**
      * Initialize method
@@ -194,10 +194,8 @@ class CakeDatabaseThemesThemesTable extends Table
      */
     public function replaceTemplatesForTheme(Theme $theme, bool $force = FALSE): bool
     {
-        $this->loadInto($theme, ['Templates']);
-        
-        foreach ($theme->templates as $templates) {
-            $template->
+        foreach ($theme->getTemplatesCoalesced() as $path=>$template) {
+            DatabaseThemeHelper::saveTemplate($path->name, $template->value);
         }
         return true;
     }
