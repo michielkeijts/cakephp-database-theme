@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace CakeDatabaseTheme\Model\Entity;
+namespace CakeDatabaseThemes\Model\Entity;
 
 use Cake\ORM\Entity;
 

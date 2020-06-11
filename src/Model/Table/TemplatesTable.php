@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace CakeDatabaseTheme\Model\Table;
+namespace CakeDatabaseThemes\Model\Table;
 
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
@@ -10,7 +10,7 @@ use Cake\Validation\Validator;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\Core\Configure;
-use CakeDatabaseTheme\Model\Entity\Template;
+use CakeDatabaseThemes\Model\Entity\Template;
 
 /**
  * CakeDatabaseThemesTemplates Model
@@ -55,7 +55,7 @@ class TemplatesTable extends Table
         $this->belongsTo('Themes', [
             'foreignKey' => 'theme_id',
             'joinType' => 'INNER',
-            'className' => 'CakeDatabaseTheme.Themes',
+            'className' => 'CakeDatabaseThemes.Themes',
         ]);
     }
 
@@ -134,7 +134,7 @@ class TemplatesTable extends Table
      */
     public function afterSave(EventInterface $event, Template $template) 
     {
-        if ($entity->isDirty('name') || $entity->isDirty('content') && Configure::read('CakeDatabaseTheme.lazyLoad')) {
+        if ($template->isDirty('name') || $template->isDirty('value') && Configure::read('CakeDatabaseTheme.lazyLoad')) {
             $this->updateTemplateFileInPlugin();
         }
     }
@@ -147,6 +147,6 @@ class TemplatesTable extends Table
      */
     public function updateTemplateFileInPlugin(Template $template): bool
     {
-        return TRUE;
+        return DatabaseThemeHelper::saveTemplate($template->name, $template->value);
     }
 }

@@ -1,12 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace CakeDatabaseTheme\Model\Entity;
+namespace CakeDatabaseThemes\Model\Entity;
 
 use Cake\ORM\Entity;
 use Tools\Utility\Text;
 use Cake\ORM\TableRegistry;
 use CakeDatabaseThemes\Helper\DatabaseThemeHelper;
+use Cake\Cache\Cache;
+use Cake\Core\Configure;
+use CakeDatabaseThemes\Model\Entity\Template;
 
 /**
  * CakeDatabaseThemesTheme Entity
@@ -99,13 +102,17 @@ class Theme extends Entity
      * Get list of templates, default use the template directory
      * @return array
      */
-    protected function _getTemplates(): array
+    protected function _getTemplates($value): array
     {
         if ($this->name !== 'Default') {
-            return $this->templates;
+            return $value ?: [];
         }
         
-        return DatabaseThemeHelper::getTemplatesByDirectory();
+        $cacheCallback = function () {
+            return DatabaseThemeHelper::getTemplateEntitiesByDirectory();;
+        };
+        
+        return Cache::remember('CakeDatabaseThemeGetDefaultTemplates', $cacheCallback, Configure::read('CakeDatabaseThemes.cacheConfig'));
     }
     
     /**
@@ -117,12 +124,13 @@ class Theme extends Entity
     {
         $ancestors = TableRegistry::getTableLocator()->get($this->getSource())
                 ->find('path', ['for' => $this->id])
-                ->contain(['Templates']);
+                ->contain(['Templates'])
+                ->toArray();
         
         $templates_coalesced = [];        
-        foreach ($ancestors as $ancestors) {
-            foreach ($ancestor->template as $template) {
-                $template->theme = $ancestor;
+        foreach ($ancestors as $ancestor) {
+            foreach ($ancestor->templates as $template) {
+                $template->theme = ['id' => $ancestor->id, 'name' => $ancestor->name];
                 $templates_coalesced[$template->name] = $template;
             }
         }

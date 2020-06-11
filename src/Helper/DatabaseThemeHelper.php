@@ -9,6 +9,7 @@ namespace CakeDatabaseThemes\Helper;
 use Cake\Filesystem\Folder;
 use Cake\Filesystem\File;
 use Cake\Core\Configure;
+use CakeDatabaseThemes\Model\Entity\Template;
 
 class DatabaseThemeHelper {
     
@@ -19,19 +20,49 @@ class DatabaseThemeHelper {
      */
     public static function getTemplatesByDirectory(string $directory = ""): array
     {
-        $templatePath = Configure::read('App.paths.templates');
-        $directory = ROOT . DS . 'templates' . DS . $directory;
+        $templatePaths = Configure::read('App.paths.templates');
         
-        $folder = new Folder($directory);
+        foreach ($templatePaths as $templatePath) {
+            $directory = $templatePath . trim($directory, DS);
+
+            if (!file_exists($directory)) {
+                continue;
+            }
+            
+            $folder = new Folder($directory);
+
+            $files = $folder->findRecursive('.*\.php');
+
+            $list = [];
+            foreach ($folder->findRecursive('.*\.php') as $file) {
+                $list[] = str_replace($templatePath, '', $file);
+            }
+
+            return $list;
+        }
+    }
+    
+    /**
+     * Get Template Entities, preloaded with data from the directory
+     * @param string $directory
+     * @return array
+     */
+    public static function getTemplateEntitiesByDirectory(string $directory = ""): array
+    {
+        $file_templates = static::getTemplatesByDirectory($directory);
+        $templatePaths = Configure::read('App.paths.templates');
         
-        $files = $folder->findRecursive('.*\.php');
-        
-        $list = [];
-        foreach ($folder->findRecursive('.*\.php') as $file) {
-            $list[] = str_replace($templatePath, '', $file);
+        $templates = [];
+        foreach ($templatePaths as $templatePath) {
+            foreach ($file_templates as $template) {
+                $templates[] = new Template([
+                    'name'  => $template,
+                    'value' => file_get_contents($templatePath . $template)
+                ]);
+            }
         }
         
-        return $list;
+        return $templates;
     }
     
     /**

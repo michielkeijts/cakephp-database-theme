@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace CakeDatabaseTheme\Model\Table;
+namespace CakeDatabaseThemes\Model\Table;
 
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
@@ -10,8 +10,9 @@ use Cake\Validation\Validator;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\Core\Configure;
-use CakeDatabaseTheme\Model\Entity\Theme;
+use CakeDatabaseThemes\Model\Entity\Theme;
 use Cake\Filesystem\Folder;
+use CakeDatabaseThemes\Helper\DatabaseThemeHelper;
 
 /**
  * CakeDatabaseThemesThemes Model
@@ -57,15 +58,15 @@ class ThemesTable extends Table
         $this->addBehavior('Tree');
 
         $this->belongsTo('ParentThemes', [
-            'className' => 'CakeDatabaseTheme.CakeDatabaseThemesThemes',
+            'className' => 'CakeDatabaseThemes.CakeDatabaseThemesThemes',
             'foreignKey' => 'parent_id',
         ]);
         $this->hasMany('ChildThemes', [
-            'className' => 'CakeDatabaseTheme.CakeDatabaseThemesThemes',
+            'className' => 'CakeDatabaseThemes.CakeDatabaseThemesThemes',
             'foreignKey' => 'parent_id',
         ]);
         $this->hasMany('Templates', [
-            'className' => 'CakeDatabaseTheme.CakeDatabaseThemesTemplates',
+            'className' => 'CakeDatabaseThemes.CakeDatabaseThemesTemplates',
             'foreignKey' => 'theme_id',
         ]);
     }
@@ -170,11 +171,11 @@ class ThemesTable extends Table
      */
     public function afterSave(EventInterface $event, Theme $theme) 
     {
-        if ($entity->isDirty('name')) {
+        if ($theme->isDirty('name')) {
             $this->createPlugin($theme);
         }
         
-        if ($entity->isDirty('parent_id')) {
+        if ($theme->isDirty('parent_id')) {
             $this->replaceTemplatesForThemereplaceTemplatesForTheme($theme, TRUE);
             
             $this->loadInto($theme, ['ChildThemes']);
@@ -194,8 +195,8 @@ class ThemesTable extends Table
      */
     public function replaceTemplatesForTheme(Theme $theme, bool $force = FALSE): bool
     {
-        foreach ($theme->getTemplatesCoalesced() as $path=>$template) {
-            DatabaseThemeHelper::saveTemplate($path->name, $template->value);
+        foreach ($theme->templates as $template) {
+            DatabaseThemeHelper::saveTemplate($template->name, $template->value);
         }
         return true;
     }
