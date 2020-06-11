@@ -41,8 +41,7 @@ class Template extends Entity
         'modified' => true,
         'modified_by' => true,
         'deleted' => true,
-        'deleted_by' => true,
-        'theme' => true,
+        'deleted_by' => true
     ];
     
     

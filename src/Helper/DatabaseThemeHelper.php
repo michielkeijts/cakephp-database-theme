@@ -10,6 +10,7 @@ use Cake\Filesystem\Folder;
 use Cake\Filesystem\File;
 use Cake\Core\Configure;
 use CakeDatabaseThemes\Model\Entity\Template;
+use CakeDatabaseThemes\Model\Entity\Theme;
 
 class DatabaseThemeHelper {
     
@@ -71,12 +72,11 @@ class DatabaseThemeHelper {
      * @param string $value
      * @return bool
      */
-    public static function saveTemplate(string $path, string $value): bool
+    public static function saveTemplate(Theme $theme, string $path, string $value): bool
     {
-        $path = sprintf('%s%s', Configure::read('CakeDatabaseThemes.pluginDir'), $path);
+        $path = sprintf('%s%s', $theme->getPath(), $path);
         
-        $file = new File($path);
-        $file->create();
+        $file = new File($path, true);
         $file->write($value, 'w', true);
         
         return $file->close();

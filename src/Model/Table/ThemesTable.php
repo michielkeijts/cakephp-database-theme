@@ -58,15 +58,15 @@ class ThemesTable extends Table
         $this->addBehavior('Tree');
 
         $this->belongsTo('ParentThemes', [
-            'className' => 'CakeDatabaseThemes.CakeDatabaseThemesThemes',
+            'className' => 'CakeDatabaseThemes.Themes',
             'foreignKey' => 'parent_id',
         ]);
         $this->hasMany('ChildThemes', [
-            'className' => 'CakeDatabaseThemes.CakeDatabaseThemesThemes',
+            'className' => 'CakeDatabaseThemes.Themes',
             'foreignKey' => 'parent_id',
         ]);
         $this->hasMany('Templates', [
-            'className' => 'CakeDatabaseThemes.CakeDatabaseThemesTemplates',
+            'className' => 'CakeDatabaseThemes.Templates',
             'foreignKey' => 'theme_id',
         ]);
     }
@@ -147,11 +147,7 @@ class ThemesTable extends Table
      */
     public function beforeSave(EventInterface $event, Theme $theme) 
     {
-        if ($entity->isDirty('name')) {
-            $this->removePlugin($theme);
-        }
-        
-        if ($entity->isDirty('parent_id') && !empty($theme->getOriginal('parent_id'))) {
+        if ($theme->isDirty('parent_id') && !empty($theme->getOriginal('parent_id'))) {
             $current_child_themes = $theme->child_themes;
             
             $this->loadInto($theme, ['ChildThemes']);
@@ -159,7 +155,7 @@ class ThemesTable extends Table
                 $this->removePlugin($child_theme);
             }
             
-            $theme->original_child_themes = $this->child_themes;
+            $theme->original_child_themes = $theme->child_themes;
             $theme->child_themes = $current_child_themes;
         }
     }
@@ -171,12 +167,14 @@ class ThemesTable extends Table
      */
     public function afterSave(EventInterface $event, Theme $theme) 
     {
-        if ($theme->isDirty('name')) {
+        if ($theme->isDirty('name') && !$theme->isNew()) {
+            $this->renamePlugin($theme);
+        } elseif ($theme->isDirty('name')) {
             $this->createPlugin($theme);
         }
         
         if ($theme->isDirty('parent_id')) {
-            $this->replaceTemplatesForThemereplaceTemplatesForTheme($theme, TRUE);
+            $this->replaceTemplatesForTheme($theme, TRUE);
             
             $this->loadInto($theme, ['ChildThemes']);
             $theme->original_child_themes = is_array($original_child_themes) ?? [];
@@ -195,8 +193,11 @@ class ThemesTable extends Table
      */
     public function replaceTemplatesForTheme(Theme $theme, bool $force = FALSE): bool
     {
-        foreach ($theme->templates as $template) {
-            DatabaseThemeHelper::saveTemplate($template->name, $template->value);
+        foreach ($theme->getTemplatesCoalesced() as $template) {
+            if ($template->theme->name === 'Default') {
+                continue;
+            }
+            DatabaseThemeHelper::saveTemplate($theme, $template->name, $template->value);
         }
         return true;
     }
@@ -237,4 +238,16 @@ class ThemesTable extends Table
         $folder = new Folder($theme->getPath());
         return $folder->delete();
     }
+    
+    /**
+     * Removes a plugin (dir/files)
+     * @param Theme $theme
+     * @return bool
+     */
+    public function renamePlugin(Theme $theme): bool
+    {
+        $oldTheme = new Theme($theme->getOriginalValues());
+        
+        return rename($oldTheme->getPath(), $theme->getPath());
+     }
 }

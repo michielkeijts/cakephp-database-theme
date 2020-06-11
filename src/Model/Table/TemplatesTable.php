@@ -11,6 +11,7 @@ use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\Core\Configure;
 use CakeDatabaseThemes\Model\Entity\Template;
+use CakeDatabaseThemes\Helper\DatabaseThemeHelper;
 
 /**
  * CakeDatabaseThemesTemplates Model
@@ -134,8 +135,8 @@ class TemplatesTable extends Table
      */
     public function afterSave(EventInterface $event, Template $template) 
     {
-        if ($template->isDirty('name') || $template->isDirty('value') && Configure::read('CakeDatabaseTheme.lazyLoad')) {
-            $this->updateTemplateFileInPlugin();
+        if (($template->isDirty('name') || $template->isDirty('value')) && !Configure::read('CakeDatabaseTheme.lazyLoad')) {
+            $this->updateTemplateFileInPlugin($template);
         }
     }
         
@@ -147,6 +148,9 @@ class TemplatesTable extends Table
      */
     public function updateTemplateFileInPlugin(Template $template): bool
     {
-        return DatabaseThemeHelper::saveTemplate($template->name, $template->value);
+        if (!$template->has('theme')) {
+            $this->loadInto($template, ['Themes']);
+        }
+        return DatabaseThemeHelper::saveTemplate($template->theme, $template->name, $template->value);
     }
 }
