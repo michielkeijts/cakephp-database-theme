@@ -151,6 +151,14 @@ class TemplatesTable extends Table
         if (!$template->has('theme')) {
             $this->loadInto($template, ['Themes']);
         }
-        return DatabaseThemeHelper::saveTemplate($template->theme, $template->name, $template->value);
+        
+        $themes = $this->Themes->find('children',['for'=>$template->theme->id])->toArray();
+        $themes[] = $template->theme;
+        
+        foreach ($themes as $child) {
+            DatabaseThemeHelper::saveTemplate($child, $template->name, $template->value);
+        }
+        
+        return true;
     }
 }

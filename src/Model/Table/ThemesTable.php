@@ -151,7 +151,7 @@ class ThemesTable extends Table
             $current_child_themes = $theme->child_themes;
             
             $this->loadInto($theme, ['ChildThemes']);
-            foreach ($theme->child_themes as $child_theme) {
+            foreach (array_merge([$theme], $theme->child_themes) as $child_theme) {
                 $this->removePlugin($child_theme);
             }
             
@@ -168,7 +168,7 @@ class ThemesTable extends Table
     public function afterSave(EventInterface $event, Theme $theme) 
     {
         if ($theme->isDirty('name') && !$theme->isNew()) {
-            $this->renamePlugin($theme);
+            $this->renameOrCreatePlugin($theme);
         } elseif ($theme->isDirty('name')) {
             $this->createPlugin($theme);
         }
@@ -177,7 +177,7 @@ class ThemesTable extends Table
             $this->replaceTemplatesForTheme($theme, TRUE);
             
             $this->loadInto($theme, ['ChildThemes']);
-            $theme->original_child_themes = is_array($original_child_themes) ?? [];
+            $theme->original_child_themes = isset($this->original_child_themes) ?: [];
             foreach (($theme->original_child_themes + $theme->child_themes) as $child_theme) {
                 $this->createPlugin($child_theme);
                 $this->replaceTemplatesForTheme($child_theme);
@@ -240,14 +240,18 @@ class ThemesTable extends Table
     }
     
     /**
-     * Removes a plugin (dir/files)
+     * Renames a plugin (dir/files) if exists, or creates it
      * @param Theme $theme
      * @return bool
      */
-    public function renamePlugin(Theme $theme): bool
+    public function renameOrCreatePlugin(Theme $theme): bool
     {
         $oldTheme = new Theme($theme->getOriginalValues());
         
-        return rename($oldTheme->getPath(), $theme->getPath());
+        if (file_exists($oldTheme->getPath())) {
+            return rename($oldTheme->getPath(), $theme->getPath());
+        }
+        
+        return $this->createPlugin($theme);
      }
 }

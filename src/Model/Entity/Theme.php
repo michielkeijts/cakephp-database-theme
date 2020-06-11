@@ -71,7 +71,7 @@ class Theme extends Entity
     }
     
     /**
-     * Gets the path for the plugin
+     * Gets the path with trailing slash for the plugin
      * @param string $name
      * @return string
      */
@@ -80,7 +80,7 @@ class Theme extends Entity
         if (empty($name)) {
             $name = $this->name;
         }
-        return sprintf('%s%s', Configure::read('CakeDatabaseThemes.pluginDir'), ucfirst(strtolower($name)));
+        return sprintf('%s%s%s', Configure::read('CakeDatabaseThemes.pluginDir'), ucfirst(strtolower($name)), DS);
     }
     
     /**
@@ -130,7 +130,8 @@ class Theme extends Entity
         $templates_coalesced = [];        
         foreach ($ancestors as $ancestor) {
             foreach ($ancestor->templates as $template) {
-                $template->theme = ['id' => $ancestor->id, 'name' => $ancestor->name];
+                // to prevent cyclic redundancy (which is not JSON encodable), new Theme
+                $template->theme = new Theme(['id' => $ancestor->id, 'name' => $ancestor->name]);
                 $templates_coalesced[$template->name] = $template;
             }
         }
