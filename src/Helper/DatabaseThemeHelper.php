@@ -11,6 +11,7 @@ use Cake\Filesystem\File;
 use Cake\Core\Configure;
 use CakeDatabaseThemes\Model\Entity\Template;
 use CakeDatabaseThemes\Model\Entity\Theme;
+use Cake\Collection\Collection;
 
 class DatabaseThemeHelper {
     
@@ -22,6 +23,7 @@ class DatabaseThemeHelper {
     public static function getTemplatesByDirectory(string $directory = ""): array
     {
         $templatePaths = Configure::read('App.paths.templates');
+        $ignorePaths = Configure::read('CakeDatabaseThemes.ignoreTemplatePaths');
         
         foreach ($templatePaths as $templatePath) {
             $directory = $templatePath . trim($directory, DS);
@@ -32,15 +34,35 @@ class DatabaseThemeHelper {
             
             $folder = new Folder($directory);
 
-            $files = $folder->findRecursive('.*\.php');
-
             $list = [];
             foreach ($folder->findRecursive('.*\.php') as $file) {
-                $list[] = str_replace($templatePath, '', $file);
+                $path = str_replace($templatePath, '', $file);
+                
+                if (static::isPathPrefixOfItems($path, $ignorePaths)) {
+                    continue;
+                }
+                
+                $list[] = $path;
             }
 
             return $list;
         }
+    }
+    
+    /**
+     * Checks if a $path is matched by a prefix defines by array $items
+     * @param string $path
+     * @param array $items
+     * @return bool
+     */
+    private static function isPathPrefixOfItems(string $path, array $items): bool
+    {
+        $c = new Collection($items);
+        $c = $c->filter(function($item) use ($path) {
+            return strpos($path, $item) !== FALSE;
+        });
+        
+        return $c->count() > 0;        
     }
     
     /**

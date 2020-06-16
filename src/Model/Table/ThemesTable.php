@@ -82,33 +82,19 @@ class ThemesTable extends Table
         $validator
             ->integer('id')
             ->allowEmptyString('id', null, 'create');
+        
+        $validator
+            ->integer('parent_id');
 
         $validator
             ->scalar('name')
             ->maxLength('name', 45)
-            ->allowEmptyString('name')
             ->add('name', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 
         $validator
             ->scalar('html_head')
             ->maxLength('html_head', 4294967295)
             ->allowEmptyString('html_head');
-
-        $validator
-            ->integer('created_by')
-            ->allowEmptyString('created_by');
-
-        $validator
-            ->integer('modified_by')
-            ->allowEmptyString('modified_by');
-
-        $validator
-            ->dateTime('deleted')
-            ->allowEmptyDateTime('deleted');
-
-        $validator
-            ->integer('deleted_by')
-            ->allowEmptyString('deleted_by');
 
         return $validator;
     }
@@ -135,7 +121,7 @@ class ThemesTable extends Table
      */
     public function beforeDelete(EventInterface $event, EntityInterface $entity) 
     {
-        if (!$this->removePlugin($entity->name)) {
+        if (!$this->removePlugin($entity)) {
             $event->stopPropagation();
         }
     }
@@ -148,10 +134,10 @@ class ThemesTable extends Table
     public function beforeSave(EventInterface $event, Theme $theme) 
     {
         if ($theme->isDirty('parent_id') && !empty($theme->getOriginal('parent_id'))) {
-            $current_child_themes = $theme->child_themes;
+            $current_child_themes = $theme->child_themes?: [];
             
             $this->loadInto($theme, ['ChildThemes']);
-            foreach (array_merge([$theme], $theme->child_themes) as $child_theme) {
+            foreach (array_merge([$theme], $theme->child_themes ?: []) as $child_theme) {
                 $this->removePlugin($child_theme);
             }
             
