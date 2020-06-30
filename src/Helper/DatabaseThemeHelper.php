@@ -47,6 +47,8 @@ class DatabaseThemeHelper {
 
             return $list;
         }
+        
+        return [];
     }
     
     /**
