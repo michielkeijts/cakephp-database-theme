@@ -80,7 +80,7 @@ class Theme extends Entity
         if (empty($name)) {
             $name = $this->name;
         }
-        return sprintf('%s%s%s', Configure::read('CakeDatabaseThemes.pluginDir'), ucfirst(strtolower($name)), DS);
+        return sprintf('%s%s%stemplates/', Configure::read('CakeDatabaseThemes.pluginDir'), ucfirst(strtolower($name)), DS);
     }
     
     /**

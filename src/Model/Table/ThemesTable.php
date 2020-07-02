@@ -203,7 +203,7 @@ class ThemesTable extends Table
             return TRUE;
         }
         
-        return mkdir($theme->getPath(), 0755);
+        return mkdir($theme->getPath(), 0755, true);
     }
     
     /**
