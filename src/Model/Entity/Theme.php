@@ -42,7 +42,7 @@ class Theme extends Entity
      *
      * @var array
      */
-    protected $_accessible = [
+    protected array $_accessible = [
         'name' => true,
         'parent_id' => true,
         'html_head' => true,
@@ -58,7 +58,7 @@ class Theme extends Entity
         'parent_theme' => true,
         'child_themes' => true,
     ];
-    
+
     /**
      * Convert `InputName with spaces%` to `Inputname-with-spaces`
      * @param type $name
@@ -69,7 +69,7 @@ class Theme extends Entity
         $name = ucfirst(strtolower(trim($name)));
         return Text::slug($name);
     }
-    
+
     /**
      * Gets the path with trailing slash for the plugin
      * @param string $name
@@ -82,7 +82,7 @@ class Theme extends Entity
         }
         return sprintf('%s%s%stemplates/', Configure::read('CakeDatabaseThemes.pluginDir'), ucfirst(strtolower($name)), DS);
     }
-    
+
     /**
      * Get a HTML HEAD coalesced over all the parent themes
      * @return string
@@ -92,12 +92,12 @@ class Theme extends Entity
         $head = "";
         $parents = TableRegistry::getTableLocator()->get($this->getSource())->find('path', ['for' => $this->id]);
         foreach ($parents as $theme) {
-            $head .= $theme->value;          
+            $head .= $theme->value;
         }
-        
+
         return $head;
     }
-    
+
     /**
      * Get list of templates, default use the template directory
      * @return array
@@ -107,14 +107,14 @@ class Theme extends Entity
         if ($this->name !== 'Default') {
             return $value ?: [];
         }
-        
+
         $cacheCallback = function () {
             return DatabaseThemeHelper::getTemplateEntitiesByDirectory();;
         };
-        
+
         return Cache::remember('CakeDatabaseThemeGetDefaultTemplates', $cacheCallback, Configure::read('CakeDatabaseThemes.cacheConfig'));
     }
-    
+
     /**
      * Get list of templates coalesced for this Theme.
      * So templates from a child theme override the parent theme
@@ -126,8 +126,8 @@ class Theme extends Entity
                 ->find('path', ['for' => $this->id])
                 ->contain(['Templates'])
                 ->toArray();
-        
-        $templates_coalesced = [];        
+
+        $templates_coalesced = [];
         foreach ($ancestors as $ancestor) {
             foreach ($ancestor->templates as $template) {
                 // to prevent cyclic redundancy (which is not JSON encodable), new Theme
@@ -135,7 +135,7 @@ class Theme extends Entity
                 $templates_coalesced[$template->name] = $template;
             }
         }
-        
+
         return $templates_coalesced;
     }
 }

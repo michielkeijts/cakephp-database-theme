@@ -32,7 +32,7 @@ class Template extends Entity
      *
      * @var array
      */
-    protected $_accessible = [
+    protected array $_accessible = [
         'theme_id' => true,
         'name' => true,
         'value' => true,
@@ -43,6 +43,6 @@ class Template extends Entity
         'deleted' => true,
         'deleted_by' => true
     ];
-    
-    
+
+
 }
