@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace CakeDatabaseThemes\Model\Entity;
 
 use Cake\ORM\Entity;
-use Tools\Utility\Text;
+use Cake\Utility\Text;
 use Cake\ORM\TableRegistry;
 use CakeDatabaseThemes\Helper\DatabaseThemeHelper;
 use Cake\Cache\Cache;
